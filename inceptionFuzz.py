@@ -44,11 +44,10 @@ headerAndValue=[]
 for params in parameters:
 	if(params ==  "--status"):
 		statusFlag=1
-	elif(statusFlag and params!="--status"):
-		statusShow.append(params)
+	elif(statusFlag and params!="--status" and len(statusShow)<1):
+		statusShow=params.split(",")
 		print("Show Status: "+str(statusShow))
-		if(len(statusShow)>1):
-			statusShow=statusShow.split(",")	
+
 	elif(params == "--headers"):
 		headerFlag=1
 
@@ -60,6 +59,7 @@ for params in parameters:
 
 	elif(wordListFlag and params != "--wordlist"):
 		wordListPath=params
+
 
 #Each header and its value is being saved as single List item
 for headerSplit in headers:
