@@ -27,12 +27,13 @@ parameters = sys.argv
 del parameters[0:2]
 
 
-paramCount = 1
+# paramCount = 1
 headers = []
 headerList =[]
 headerValueList = []
 headerFlag = 0
-statusShow = ""
+statusFlag=0
+statusShow = []
 wordListFlag=0
 wordListPath=""
 headerAndValue=[]
@@ -42,34 +43,36 @@ headerAndValue=[]
 
 for params in parameters:
 	if(params ==  "--status"):
-		statusShow = sys.argv[paramCount]
-		print("Show Status: "+statusShow)
-		statusShow=statusShow.split(",")
-
+		statusFlag=1
+	elif(statusFlag and params!="--status"):
+		statusShow.append(params)
+		print("Show Status: "+str(statusShow))
+		if(len(statusShow)>1):
+			statusShow=statusShow.split(",")	
 	elif(params == "--headers"):
 		headerFlag=1
 
 	elif(params == "--wordlist"):
 		wordListFlag=1
 
-	if(headerFlag==1 and params!="--headers"):
+	elif(headerFlag and params!="--headers" and wordListFlag==0):
 		headers.append(params)
 
-	if(wordListFlag==1 and params != "--wordlist"):
+	elif(wordListFlag and params != "--wordlist"):
 		wordListPath=params
-		print(wordListPath)
-
-print(str(headers))
 
 #Each header and its value is being saved as single List item
 for headerSplit in headers:
 	headerList.append(headerSplit.split(":",1)[0])
 	headerValueList.append(headerSplit.split(":",1)[1])
 	
-
 headerCount = len(headerList)
 
-print("Headers: "+str(headers))
+if(headerFlag):
+	print("Headers: "+str(headers))
+
+if(wordListFlag):
+	print("Wordlist: "+str(wordListPath))
 
 urlVerifyRegex=("((http|https)://)(www.)?" +
              "[a-zA-Z0-9@:%._\\+~#?&//=]" +
@@ -88,12 +91,15 @@ else:
 
 print("All looks good. Time to Fuzz....\n")
 
-#Reading the payload file
-payloadsFile = open('wordlists/36KCommonDirectoryAndFileNames.txt', 'r')
+#Reading the payload file from command line if it is provided else using default wordlist
+if(wordListFlag==1):
+	payloadsFile = open(wordListPath, 'r')	
+else:
+	payloadsFile = open('wordlists/36KCommonDirectoryAndFileNames.txt')
+
 fuzz = payloadsFile.readlines()
 
 #Check if the url ends with / and if it does remove /
-
 last_char=url[-1]
 if(last_char=="/"):
 	url=url.rstrip(url[-1])
@@ -114,7 +120,7 @@ resultFile=open(domain+'.txt','a') #Appends at the last
 for payload1 in fuzz:
 		count1 += 1
 		if(headerCount==0):
-			res=requests.get(url+"/"+payload1.strip()+"/"+payload2.strip())
+			res=requests.get(url+"/"+payload1.strip())
 		elif(headerCount==1):
 			res=requests.get(url+"/"+payload1.strip(),headers={headerList[0]:headerValueList[0]})
 		elif(headerCount==2):
@@ -122,10 +128,15 @@ for payload1 in fuzz:
 		elif(headerCount==3):
 			res=requests.get(url+"/"+payload1.strip(),headers={headerList[0]:headerValueList[0],headerList[1]:headerValueList[1],headerList[2]:headerValueList[2]})
 		
-		if(str(res.status_code) in statusShow):
+		if(statusFlag and str(res.status_code) in statusShow):
 			result=url+"/"+payload1.strip()+"\t\t"+str(res.status_code)
 			resultFile.write(result+"\n")
 			print(result)
+		elif(statusFlag == 0):
+			result=url+"/"+payload1.strip()+"\t\t"+str(res.status_code)
+			resultFile.write(result+"\n")
+			print(result)
+
 
 		for payload2 in fuzz:
 			count2 += 1
@@ -139,11 +150,15 @@ for payload1 in fuzz:
 				res=requests.get(url+"/"+payload1.strip()+"/"+payload2.strip(),headers={headerList[0]:headerValueList[0],headerList[1]:headerValueList[1],headerList[2]:headerValueList[2]})
 
 
-			if(str(res.status_code) in statusShow):
+			if(statusFlag and str(res.status_code) in statusShow):
 				result=url+"/"+payload1.strip()+"/"+payload2.strip()+"\t"+str(res.status_code)
 				resultFile.write(result+"\n")
 				print(result)
-					
+			elif(statusFlag == 0):
+				result=url+"/"+payload1.strip()+"/"+payload2.strip()+"\t"+str(res.status_code)
+				resultFile.write(result+"\n")
+				print(result)
+
 				
 resultFile.close()
 payloadsFile.close()
