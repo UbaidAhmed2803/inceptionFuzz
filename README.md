@@ -1,6 +1,8 @@
-# inceptionFuzz
+<img src="inceptionFuzz.png">
 
-This tool is created by Ubaid Ahmed based on some project requirement.
+**About**
+
+This tool is created by Ubaid Ahmed. As they say necessity is the mother of all inventions so is this tool. There was a project requirement to fuzz the URLs from command line as doing so, for some reasons, was giving different status code, for some of the URLs, as compared to doing so from Burp's Intruder. Hence, this tool was written.
 
 **Features**
 1. This tool helps in fuzzing a url upto 2 levels i.e. https://domain.com/Fuzz/Fuzz.
