@@ -105,7 +105,7 @@ if(last_char=="/"):
 	url=url.rstrip(url[-1])
 
 
-print("Fuzzing : "+url)
+# print("Fuzzing : "+url)
 print("URL\t\t\t\tStatus Code")
 count1 = 0
 count2 = 0
@@ -135,9 +135,9 @@ for payload1 in fuzz:
 		elif(statusFlag == 0):
 			result=url+"/"+payload1.strip()+"\t\t"+str(res.status_code)
 			resultFile.write(result+"\n")
-			print(result)
+			print(result)	
 
-
+		
 		for payload2 in fuzz:
 			count2 += 1
 			if(headerCount==0):
@@ -159,6 +159,7 @@ for payload1 in fuzz:
 				resultFile.write(result+"\n")
 				print(result)
 
+			print("Fuzzing : "+ url+"/"+payload1.strip()+"/"+payload2.strip()+"\t"+str(res.status_code),end='\r')			
 				
 resultFile.close()
 payloadsFile.close()
