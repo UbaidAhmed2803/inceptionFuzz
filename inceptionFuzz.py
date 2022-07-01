@@ -116,40 +116,76 @@ domain = urlparse(url).netloc
 #Opening a file for writing results
 resultFile=open(domain+'.txt','a') #Appends at the last
 
+requestsSent = 0
+
 # Strips the newline character
 for payload1 in fuzz:
 		count1 += 1
 		if(headerCount==0):
-			res=requests.get(url+"/"+payload1.strip())
+			try:
+				res=requests.get(url+"/"+payload1.strip())
+			except requests.exceptions.Timeout:
+				print("Request Timeout")
 		elif(headerCount==1):
-			res=requests.get(url+"/"+payload1.strip(),headers={headerList[0]:headerValueList[0]})
+			try:
+				res=requests.get(url+"/"+payload1.strip(),headers={headerList[0]:headerValueList[0]})
+			except requests.exceptions.Timeout:
+				print("Request Timeout")
 		elif(headerCount==2):
-			res=requests.get(url+"/"+payload1.strip(),headers={headerList[0]:headerValueList[0],headerList[1]:headerValueList[1]})
+			try:
+				res=requests.get(url+"/"+payload1.strip(),headers={headerList[0]:headerValueList[0],headerList[1]:headerValueList[1]})
+			except requests.exceptions.Timeout:
+				print("Request Timeout")
 		elif(headerCount==3):
-			res=requests.get(url+"/"+payload1.strip(),headers={headerList[0]:headerValueList[0],headerList[1]:headerValueList[1],headerList[2]:headerValueList[2]})
+			try:
+				res=requests.get(url+"/"+payload1.strip(),headers={headerList[0]:headerValueList[0],headerList[1]:headerValueList[1],headerList[2]:headerValueList[2]})
+			except requests.exceptions.Timeout:
+				print("Request Timeout")
 		
+		requestsSent+=1
+
 		if(statusFlag and str(res.status_code) in statusShow):
 			result=url+"/"+payload1.strip()+"\t\t"+str(res.status_code)
 			resultFile.write(result+"\n")
 			print(result)
+		elif(statusFlag and str(res.status_code) not in statusShow):
+			if(res.status_code==404):
+				# print("Test "+payload1,end='\r')
+				continue
 		elif(statusFlag == 0):
-			result=url+"/"+payload1.strip()+"\t\t"+str(res.status_code)
-			resultFile.write(result+"\n")
-			print(result)	
+			if(res.status_code==404):
+				continue
+			else:
+				result=url+"/"+payload1.strip()+"\t\t"+str(res.status_code)
+				resultFile.write(result+"\n")
+				print(result)	
 
 		
 		for payload2 in fuzz:
 			count2 += 1
 			if(headerCount==0):
-				res=requests.get(url+"/"+payload1.strip()+"/"+payload2.strip())
+				try:
+					res=requests.get(url+"/"+payload1.strip()+"/"+payload2.strip())
+				except requests.exceptions.Timeout:
+					print("Request Timeout")
 			elif(headerCount==1):
-				res=requests.get(url+"/"+payload1.strip()+"/"+payload2.strip(),headers={headerList[0]:headerValueList[0]})
+				try:
+					res=requests.get(url+"/"+payload1.strip()+"/"+payload2.strip(),headers={headerList[0]:headerValueList[0]})
+				except requests.exceptions.Timeout:
+					print("Request Timeout")
 			elif(headerCount==2):
-				res=requests.get(url+"/"+payload1.strip()+"/"+payload2.strip(),headers={headerList[0]:headerValueList[0],headerList[1]:headerValueList[1]})
+				try:
+					res=requests.get(url+"/"+payload1.strip()+"/"+payload2.strip(),headers={headerList[0]:headerValueList[0],headerList[1]:headerValueList[1]})
+				except requests.exceptions.Timeout:
+					print("Request Timeout")
 			elif(headerCount==3):
-				res=requests.get(url+"/"+payload1.strip()+"/"+payload2.strip(),headers={headerList[0]:headerValueList[0],headerList[1]:headerValueList[1],headerList[2]:headerValueList[2]})
+				try:
+					res=requests.get(url+"/"+payload1.strip()+"/"+payload2.strip(),headers={headerList[0]:headerValueList[0],headerList[1]:headerValueList[1],headerList[2]:headerValueList[2]})
+				except requests.exceptions.Timeout:
+					print("Request Timeout")
 
-
+			requestsSent+=1	
+				
 			if(statusFlag and str(res.status_code) in statusShow):
 				result=url+"/"+payload1.strip()+"/"+payload2.strip()+"\t"+str(res.status_code)
 				resultFile.write(result+"\n")
@@ -165,5 +201,5 @@ resultFile.close()
 payloadsFile.close()
 
 
-print("Reached the end of payload file. Bye!!\n")
+print("Reached the end of payload file. Total Requests Sent:"+str(requestsSent)+"\nBye!!\n")
 
