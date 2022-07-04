@@ -10,7 +10,7 @@ print("****************************************************************\n")
 result = pyfiglet.figlet_format("inceptionFuzz")
 print(result)
 print("****************************************************************\n")
-print("***********************By UbaidAhmed.com************************\n")
+print("*********************https://ubaidahmed.com*********************\n")
 print("****************************************************************\n")
 print("\n")
 print("Performing few checks before fuzzing.......\n")
@@ -37,6 +37,7 @@ statusShow = []
 wordListFlag=0
 wordListPath=""
 headerAndValue=[]
+not404directories=[]
 
 
 #Reading and storing params based on the options choosen by the user
@@ -63,8 +64,12 @@ for params in parameters:
 
 #Each header and its value is being saved as single List item
 for headerSplit in headers:
-	headerList.append(headerSplit.split(":",1)[0])
-	headerValueList.append(headerSplit.split(":",1)[1])
+	try:
+		headerList.append(headerSplit.split(":",1)[0])
+		headerValueList.append(headerSplit.split(":",1)[1])
+	except:
+		print("\nError: Please check the parameters. Something seems to be wrong with them.")
+		sys.exit()
 	
 headerCount = len(headerList)
 
@@ -87,15 +92,25 @@ if(re.search(urlVerification,url)):
 else:
 	validUrl=bool(False)
 	print("Please provide a proper URL starting with either http:// or https://")
-	quit()
-
-print("All looks good. Time to Fuzz....\n")
+	sys.exit()
 
 #Reading the payload file from command line if it is provided else using default wordlist
 if(wordListFlag==1):
-	payloadsFile = open(wordListPath, 'r')	
+	try:
+		payloadsFile = open(wordListPath, 'r')
+	except FileNotFoundError:
+		print("Error: Could not open/read file:", wordListPath)
+		sys.exit()	
 else:
-	payloadsFile = open('wordlists/36KCommonDirectoryAndFileNames.txt')
+	try:
+		payloadsFile = open('wordlists/36KCommonDirectoryAndFileNames.txt')
+	except OSError:
+		print("Default wordlist not found. Please make sure the default wordlists are present in the wordlists directory of inceptionFuzz")
+		sys.exit()
+
+print("All looks good. Time to Fuzz....")
+
+print("\nStarting with first level fuzzing\n")
 
 fuzz = payloadsFile.readlines()
 
@@ -118,88 +133,95 @@ resultFile=open(domain+'.txt','a') #Appends at the last
 
 requestsSent = 0
 
+payloadCount=len(fuzz)
 # Strips the newline character
 for payload1 in fuzz:
-		count1 += 1
+	count1 += 1
+	print("Fuzzing : "+ str(count1)+"/"+str(payloadCount),end='\r')		
+
+	try:
+		if(headerCount==0):
+			res=requests.get(url+"/"+payload1.strip())		
+		elif(headerCount==1):
+			res=requests.get(url+"/"+payload1.strip(),headers={headerList[0]:headerValueList[0]})
+		elif(headerCount==2):
+			res=requests.get(url+"/"+payload1.strip(),headers={headerList[0]:headerValueList[0],headerList[1]:headerValueList[1]})
+		elif(headerCount==3):
+			res=requests.get(url+"/"+payload1.strip(),headers={headerList[0]:headerValueList[0],headerList[1]:headerValueList[1],headerList[2]:headerValueList[2]})
+	except requests.exceptions.Timeout:
+		print("Request Timeout")
+	except requests.exceptions.RequestException:
+		print("Error: Please check the parameters. Something seems to be wrong with them.")
+		sys.exit()
+	except:
+		print("Error: Something went wrong. Are you sure you have provided correct parameters?")
+		sys.exit()
+
+	requestsSent+=1
+	if(str(res.status_code)!="404"):
+		not404directories.append(payload1)
+
+	if(statusFlag and str(res.status_code) in statusShow):
+		result=url+"/"+payload1.strip()+"\t\t"+str(res.status_code)
+		resultFile.write(result+"\n")
+		print(result)
+	elif(statusFlag and str(res.status_code) not in statusShow):
+		if(res.status_code==404):
+			# Skip
+			continue
+	elif(statusFlag == 0):
+		result=url+"/"+payload1.strip()+"\t\t"+str(res.status_code)
+		resultFile.write(result+"\n")
+		print(result)	
+
+	
+secondLevelFuzzCount=payloadCount*len(not404directories)
+print("\n\nFirst level fuzzing is done. \n"+str(len(not404directories))+" URLs were found giving non 404 status code. The tool will now fuzz all these URLs further.\nStarting with second level fuzzing.\n")
+
+
+#Second Level Fuzz
+for not404 in not404directories:
+	for payload2 in fuzz:
+		count2 += 1
+		print("Fuzzing : "+ str(count2)+"/"+str(secondLevelFuzzCount),end='\r')		
+
 		if(headerCount==0):
 			try:
-				res=requests.get(url+"/"+payload1.strip())
+				res=requests.get(url+"/"+not404.strip()+"/"+payload2.strip())
 			except requests.exceptions.Timeout:
 				print("Request Timeout")
 		elif(headerCount==1):
 			try:
-				res=requests.get(url+"/"+payload1.strip(),headers={headerList[0]:headerValueList[0]})
+				res=requests.get(url+"/"+not404.strip()+"/"+payload2.strip(),headers={headerList[0]:headerValueList[0]})
 			except requests.exceptions.Timeout:
 				print("Request Timeout")
 		elif(headerCount==2):
 			try:
-				res=requests.get(url+"/"+payload1.strip(),headers={headerList[0]:headerValueList[0],headerList[1]:headerValueList[1]})
+				res=requests.get(url+"/"+not404.strip()+"/"+payload2.strip(),headers={headerList[0]:headerValueList[0],headerList[1]:headerValueList[1]})
 			except requests.exceptions.Timeout:
 				print("Request Timeout")
 		elif(headerCount==3):
 			try:
-				res=requests.get(url+"/"+payload1.strip(),headers={headerList[0]:headerValueList[0],headerList[1]:headerValueList[1],headerList[2]:headerValueList[2]})
+				res=requests.get(url+"/"+not404.strip()+"/"+payload2.strip(),headers={headerList[0]:headerValueList[0],headerList[1]:headerValueList[1],headerList[2]:headerValueList[2]})
 			except requests.exceptions.Timeout:
 				print("Request Timeout")
-		
-		requestsSent+=1
 
+		requestsSent+=1	
+				
 		if(statusFlag and str(res.status_code) in statusShow):
-			result=url+"/"+payload1.strip()+"\t\t"+str(res.status_code)
+			result=url+"/"+not404.strip()+"/"+payload2.strip()+"\t"+str(res.status_code)
 			resultFile.write(result+"\n")
 			print(result)
-		elif(statusFlag and str(res.status_code) not in statusShow):
-			if(res.status_code==404):
-				# print("Test "+payload1,end='\r')
-				continue
 		elif(statusFlag == 0):
-			if(res.status_code==404):
-				continue
-			else:
-				result=url+"/"+payload1.strip()+"\t\t"+str(res.status_code)
-				resultFile.write(result+"\n")
-				print(result)	
+			result=url+"/"+not404.strip()+"/"+payload2.strip()+"\t"+str(res.status_code)
+			resultFile.write(result+"\n")
+			print(result)
 
-		
-		for payload2 in fuzz:
-			count2 += 1
-			if(headerCount==0):
-				try:
-					res=requests.get(url+"/"+payload1.strip()+"/"+payload2.strip())
-				except requests.exceptions.Timeout:
-					print("Request Timeout")
-			elif(headerCount==1):
-				try:
-					res=requests.get(url+"/"+payload1.strip()+"/"+payload2.strip(),headers={headerList[0]:headerValueList[0]})
-				except requests.exceptions.Timeout:
-					print("Request Timeout")
-			elif(headerCount==2):
-				try:
-					res=requests.get(url+"/"+payload1.strip()+"/"+payload2.strip(),headers={headerList[0]:headerValueList[0],headerList[1]:headerValueList[1]})
-				except requests.exceptions.Timeout:
-					print("Request Timeout")
-			elif(headerCount==3):
-				try:
-					res=requests.get(url+"/"+payload1.strip()+"/"+payload2.strip(),headers={headerList[0]:headerValueList[0],headerList[1]:headerValueList[1],headerList[2]:headerValueList[2]})
-				except requests.exceptions.Timeout:
-					print("Request Timeout")
 
-			requestsSent+=1	
-				
-			if(statusFlag and str(res.status_code) in statusShow):
-				result=url+"/"+payload1.strip()+"/"+payload2.strip()+"\t"+str(res.status_code)
-				resultFile.write(result+"\n")
-				print(result)
-			elif(statusFlag == 0):
-				result=url+"/"+payload1.strip()+"/"+payload2.strip()+"\t"+str(res.status_code)
-				resultFile.write(result+"\n")
-				print(result)
-
-			print("Fuzzing : "+ url+"/"+payload1.strip()+"/"+payload2.strip()+"\t"+str(res.status_code),end='\r')			
 				
 resultFile.close()
 payloadsFile.close()
 
 
-print("Reached the end of payload file. Total Requests Sent:"+str(requestsSent)+"\nBye!!\n")
+print("\n\nReached the end of payload file. Total Requests Sent:"+str(requestsSent)+"\nBye!!\n")
 
