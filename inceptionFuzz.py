@@ -4,6 +4,7 @@ import sys
 import re
 from urllib.parse import urlparse
 import pyfiglet
+import time
 
 print("\n")
 print("****************************************************************\n")  
@@ -38,6 +39,7 @@ wordListFlag=0
 wordListPath=""
 headerAndValue=[]
 not404directories=[]
+secondLevelPayloadFuzz = 0
 
 
 #Reading and storing params based on the options choosen by the user
@@ -79,19 +81,10 @@ if(headerFlag):
 if(wordListFlag):
 	print("Wordlist: "+str(wordListPath))
 
-urlVerifyRegex=("((http|https)://)(www.)?" +
-             "[a-zA-Z0-9@:%._\\+~#?&//=]" +
-             "{2,256}\\.[a-z]" +
-             "{2,6}\\b([-a-zA-Z0-9@:%" +
-             "._\\+~#?&//=]*)")
-
-urlVerification = re.compile(urlVerifyRegex)
-
-if(re.search(urlVerification,url)):
-	validUrl=bool(True)
-else:
-	validUrl=bool(False)
-	print("Please provide a proper URL starting with either http:// or https://")
+try:
+	requests.get(url)
+except:
+	print("Error: Something is not right with the url you provided. Please check and try again.")
 	sys.exit()
 
 #Reading the payload file from command line if it is provided else using default wordlist
@@ -151,10 +144,12 @@ for payload1 in fuzz:
 	except requests.exceptions.Timeout:
 		print("Request Timeout")
 	except requests.exceptions.RequestException:
-		print("Error: Please check the parameters. Something seems to be wrong with them.")
-		sys.exit()
+		print("Something went wrong...")
+		continue
 	except:
-		print("Error: Something went wrong. Are you sure you have provided correct parameters?")
+		print("Something went wrong...")
+		resultFile.close()
+		payloadsFile.close()
 		sys.exit()
 
 	requestsSent+=1
@@ -177,34 +172,40 @@ for payload1 in fuzz:
 	
 secondLevelFuzzCount=payloadCount*len(not404directories)
 print("\n\nFirst level fuzzing is done. \n"+str(len(not404directories))+" URLs were found giving non 404 status code. The tool will now fuzz all these URLs further.\nStarting with second level fuzzing.\n")
+resultFile.close() #To save the result of first level fuzz in case of a crash
+
+
+#Opening a file for writing results of second level fuzzing
+resultFile=open(domain+'.txt','a') #Appends at the last
+
 
 
 #Second Level Fuzz
 for not404 in not404directories:
+	secondLevelPayloadFuzz+=1
 	for payload2 in fuzz:
 		count2 += 1
 		print("Fuzzing : "+ str(count2)+"/"+str(secondLevelFuzzCount),end='\r')		
 
-		if(headerCount==0):
-			try:
+		try:
+			if(headerCount==0):
 				res=requests.get(url+"/"+not404.strip()+"/"+payload2.strip())
-			except requests.exceptions.Timeout:
-				print("Request Timeout")
-		elif(headerCount==1):
-			try:
+			elif(headerCount==1):
 				res=requests.get(url+"/"+not404.strip()+"/"+payload2.strip(),headers={headerList[0]:headerValueList[0]})
-			except requests.exceptions.Timeout:
-				print("Request Timeout")
-		elif(headerCount==2):
-			try:
+			elif(headerCount==2):
 				res=requests.get(url+"/"+not404.strip()+"/"+payload2.strip(),headers={headerList[0]:headerValueList[0],headerList[1]:headerValueList[1]})
-			except requests.exceptions.Timeout:
-				print("Request Timeout")
-		elif(headerCount==3):
-			try:
+			elif(headerCount==3):
 				res=requests.get(url+"/"+not404.strip()+"/"+payload2.strip(),headers={headerList[0]:headerValueList[0],headerList[1]:headerValueList[1],headerList[2]:headerValueList[2]})
-			except requests.exceptions.Timeout:
-				print("Request Timeout")
+		except requests.exceptions.Timeout:
+			print("Request Timeout")
+		except requests.exceptions.RequestException:
+			print("Something went wrong...")
+			continue
+		except:
+			print("Something went wrong...")
+			resultFile.close()
+			payloadsFile.close()
+			sys.exit()	
 
 		requestsSent+=1	
 				
@@ -217,6 +218,7 @@ for not404 in not404directories:
 			resultFile.write(result+"\n")
 			print(result)
 
+	print("Done fuzzing for "+str(secondLevelPayloadFuzz)+" of "+str(secondLevelFuzzCount)+" non 404 directories.")		
 
 				
 resultFile.close()
