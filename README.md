@@ -37,3 +37,8 @@ python3 inceptionFuzz.py https://domain.com --status 200,301 --headers "Origin:1
 python3 inceptionFuzz.py https://domain.com --status 200,301 --headers "Origin:127.0.0.1" 
 "X-Forwarded-Host:127.0.0.1" --wordlist /wordlist/test.txt
 ```
+
+```
+python3 inceptionFuzz.py https://domain.com --status 200,301 --headers "Origin:127.0.0.1" 
+"X-Forwarded-Host:127.0.0.1" --wordlist /wordlist/test.txt --level 1
+```
