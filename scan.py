@@ -43,39 +43,6 @@ def requestBlocked():
 def getRequestsBlockedCount():
 	return sharedData.requestsBlockedCount
 
-
-# def get_response_info(url):
-#     # Extract the host and path from the URL
-#     host, path = getHostAndPath(url)
-
-#     # Establish a connection to the host
-#     connection = http.client.HTTPSConnection(host)
-
-#     try:
-#         # Send an HTTP GET request
-#         connection.request("GET", path)
-
-#         # Get the response from the server
-#         response = connection.getresponse()
-
-#         # Read the response data
-#         response_data = response.read().decode('utf-8')
-
-#         # Extract the response code
-#         response_code = response.code
-
-#         # Extract the title of the page using a regular expression
-#         title = getTitleFromResponse(response_data)
-
-#         # Close the connection
-#         connection.close()
-
-#         # Return the response code and title
-#         return response_code, title
-
-#     except http.client.HTTPException as e:
-#         print("An HTTP exception occurred:", e)
-
 def getHostAndPath(url):
     # Extract the host and path using a regular expression
     pattern = r"https?://([^/]+)(/.*)?"
@@ -113,8 +80,6 @@ def fuzz(level):
 			
 			print(f"{Fore.BLUE}Fuzzing : {payloadCounter} payloads sent {Style.RESET_ALL}",end='\r')		
 			
-			# urlToFuzz=baseUrl+"/"+payloadValue
-			
 			status_code,appsRunning,contentLength=sendRequest(urlToFuzz,payloadValue)
 
 			fuzzedUrl = urlToFuzz.strip()+"/"+payloadValue.strip()
@@ -126,9 +91,6 @@ def fuzz(level):
 						sharedData.non404File.write(str(status_code)+" : "+urlToFuzz+"/"+payloadValue.strip())
 
 					if(sharedData.statusShow and str(status_code) in sharedData.statusShow):
-						# resultTableData.append(result)
-						# resultTable = tabulate(resultTableData,headers=resultTableHeaders, tablefmt="fancy_grid")
-						# fuzzedUrl = urlToFuzz.strip()+"/"+payloadValue.strip()
 						print(f"{fuzzedUrl:{70}} {str(status_code):{20}} {str(appsRunning):{30}} {str(contentLength):{10}}")
 						sharedData.resultFile.write(f"{fuzzedUrl:{70}} {str(status_code):{20}} {str(appsRunning):{30}} {str(contentLength):{10}}")
 					elif(sharedData.statusShow and status_code not in sharedData.statusShow):
