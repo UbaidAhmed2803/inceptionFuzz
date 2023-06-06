@@ -1,0 +1,22 @@
+401 : https://testlink.tothenew.com/admin
+200 : https://testlink.tothenew.com/user
+200 : https://testlink.tothenew.com/test
+200 : https://testlink.tothenew.com/temp
+200 : https://testlink.tothenew.com/tmp
+200 : https://testlink.tothenew.com/js
+200 : https://testlink.tothenew.com/lang
+200 : https://testlink.tothenew.com/default401 : https://testlink.tothenew.com/admin
+200 : https://testlink.tothenew.com/user
+200 : https://testlink.tothenew.com/test
+200 : https://testlink.tothenew.com/temp
+200 : https://testlink.tothenew.com/tmp
+200 : https://testlink.tothenew.com/js
+200 : https://testlink.tothenew.com/lang
+200 : https://testlink.tothenew.com/default401 : https://testlink.tothenew.com/admin
+200 : https://testlink.tothenew.com/user
+200 : https://testlink.tothenew.com/test
+200 : https://testlink.tothenew.com/temp
+200 : https://testlink.tothenew.com/tmp
+200 : https://testlink.tothenew.com/js
+200 : https://testlink.tothenew.com/lang
+200 : https://testlink.tothenew.com/default

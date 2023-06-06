@@ -1,5 +1,4 @@
 admin
 user
 test
-temp
-tmp
+index
