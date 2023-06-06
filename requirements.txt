@@ -1,4 +1,4 @@
-1. Python 3.7
-2. pip3
-3. pip3 install pyfiglet
-4. requests
+python==3.7
+pip==21.0.1
+pyfiglet
+requests
