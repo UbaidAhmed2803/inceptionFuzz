@@ -88,7 +88,7 @@ def fuzz(level):
 					if(str(status_code)!="404"): #Storing the urls giving non 404 directories
 						if payloadValue not in sharedData.not404directories:
 							sharedData.not404directories.append(payloadValue)
-						sharedData.non404File.write(str(status_code)+" : "+urlToFuzz+"/"+payloadValue.strip())
+						sharedData.non404File.write(f"{str(status_code)} : {urlToFuzz}/{payloadValue.strip()}")
 
 					if(sharedData.statusShow and str(status_code) in sharedData.statusShow):
 						print(f"{fuzzedUrl:{70}} {str(status_code):{20}} {str(appsRunning):{30}} {str(contentLength):{10}}")
