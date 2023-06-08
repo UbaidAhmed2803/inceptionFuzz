@@ -35,7 +35,7 @@ def getArgs():
 			if(url_input != ""):
 				sharedData.urlFlag = True
 		sharedData.url = url_input.strip()
-	print(f"{Fore.BLUE}Target URL: {Fore.GREEN}"+str(url)+f"{Style.RESET_ALL}")
+	print(f"{Fore.BLUE}Target URL: {Fore.GREEN}"+str(sharedData.url)+f"{Style.RESET_ALL}")
 	
 	if(level!=None):
 		sharedData.level=level
